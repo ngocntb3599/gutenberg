@@ -8,6 +8,7 @@ import { useSpring, interpolate } from 'react-spring/web.cjs';
  */
 import { useState, useLayoutEffect } from '@wordpress/element';
 import { useReducedMotion } from '@wordpress/compose';
+import { useSelect } from '@wordpress/data';
 
 /**
  * Hook used to compute the styles required to move a div into a new position.
@@ -28,7 +29,8 @@ import { useReducedMotion } from '@wordpress/compose';
  * @return {Object} Style object.
  */
 function useMovingAnimation( ref, isSelected, enableAnimation, triggerAnimationOnChange ) {
-	const prefersReducedMotion = useReducedMotion() || ! enableAnimation;
+	const isTyping = useSelect( ( select ) => select( 'core/block-editor' ).isTyping() );
+	const prefersReducedMotion = useReducedMotion() || isTyping || ! enableAnimation;
 	const [ resetAnimation, setResetAnimation ] = useState( false );
 	const [ transform, setTransform ] = useState( { x: 0, y: 0 } );
 

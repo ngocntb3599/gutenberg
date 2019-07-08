@@ -704,4 +704,3 @@ export function __unstableSaveReusableBlock( id, updatedId ) {
 export function __unstableMarkLastChangeAsPersistent() {
 	return { type: 'MARK_LAST_CHANGE_AS_PERSISTENT' };
 }
-
