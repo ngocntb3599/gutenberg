@@ -149,6 +149,13 @@ class WritingFlow extends Component {
 
 		const scrollContainer = getScrollContainer( this.container );
 
+		// The page must be scrollable.
+		if ( ! scrollContainer ) {
+			return;
+		}
+
+		// The scroll container may be different depending on the viewport
+		// width.
 		if ( scrollContainer === document.body ) {
 			window.scrollBy( 0, diff );
 		} else {
