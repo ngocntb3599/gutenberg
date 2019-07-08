@@ -77,6 +77,7 @@ class EditorProvider extends Component {
 			...pick( settings, [
 				'alignWide',
 				'allowedBlockTypes',
+				'autoApplyBlockStyles',
 				'availableLegacyWidgets',
 				'bodyPlaceholder',
 				'codeEditingEnabled',
@@ -94,6 +95,7 @@ class EditorProvider extends Component {
 				'template',
 				'templateLock',
 				'titlePlaceholder',
+				'onUpdateAutoApplyBlockStyles',
 			] ),
 			__experimentalMetaSource: {
 				value: meta,

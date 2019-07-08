@@ -7,7 +7,7 @@ import { size, map, without } from 'lodash';
 /**
  * WordPress dependencies
  */
-import { withSelect } from '@wordpress/data';
+import { withSelect, withDispatch } from '@wordpress/data';
 import { EditorProvider, ErrorBoundary, PostLockedModal } from '@wordpress/editor';
 import { StrictMode, Component } from '@wordpress/element';
 import {
@@ -15,6 +15,7 @@ import {
 	SlotFillProvider,
 	DropZoneProvider,
 } from '@wordpress/components';
+import { compose } from '@wordpress/compose';
 
 /**
  * Internal dependencies
@@ -38,11 +39,15 @@ class Editor extends Component {
 		focusMode,
 		hiddenBlockTypes,
 		blockTypes,
+		autoApplyBlockStyles,
+		onUpdateAutoApplyBlockStyles,
 	) {
 		settings = {
 			...settings,
+			autoApplyBlockStyles,
 			hasFixedToolbar,
 			focusMode,
+			onUpdateAutoApplyBlockStyles,
 		};
 
 		// Omit hidden block types if exists and non-empty.
@@ -67,6 +72,7 @@ class Editor extends Component {
 
 	render() {
 		const {
+			autoApplyBlockStyles,
 			settings,
 			hasFixedToolbar,
 			focusMode,
@@ -76,6 +82,7 @@ class Editor extends Component {
 			onError,
 			hiddenBlockTypes,
 			blockTypes,
+			onUpdateAutoApplyBlockStyles,
 			...props
 		} = this.props;
 
@@ -89,6 +96,8 @@ class Editor extends Component {
 			focusMode,
 			hiddenBlockTypes,
 			blockTypes,
+			autoApplyBlockStyles,
+			onUpdateAutoApplyBlockStyles,
 		);
 
 		return (
@@ -116,16 +125,25 @@ class Editor extends Component {
 	}
 }
 
-export default withSelect( ( select, { postId, postType } ) => {
-	const { isFeatureActive, getPreference } = select( 'core/edit-post' );
-	const { getEntityRecord } = select( 'core' );
-	const { getBlockTypes } = select( 'core/blocks' );
+export default compose( [
+	withSelect( ( select, { postId, postType } ) => {
+		const { isFeatureActive, getPreference } = select( 'core/edit-post' );
+		const { getEntityRecord } = select( 'core' );
+		const { getBlockTypes } = select( 'core/blocks' );
 
-	return {
-		hasFixedToolbar: isFeatureActive( 'fixedToolbar' ),
-		focusMode: isFeatureActive( 'focusMode' ),
-		post: getEntityRecord( 'postType', postType, postId ),
-		hiddenBlockTypes: getPreference( 'hiddenBlockTypes' ),
-		blockTypes: getBlockTypes(),
-	};
-} )( Editor );
+		return {
+			hasFixedToolbar: isFeatureActive( 'fixedToolbar' ),
+			focusMode: isFeatureActive( 'focusMode' ),
+			post: getEntityRecord( 'postType', postType, postId ),
+			autoApplyBlockStyles: getPreference( 'autoApplyBlockStyles' ),
+			hiddenBlockTypes: getPreference( 'hiddenBlockTypes' ),
+			blockTypes: getBlockTypes(),
+		};
+	} ),
+	withDispatch( ( dispatch ) => {
+		const { updateAutoApplyBlockStyles } = dispatch( 'core/edit-post' );
+		return {
+			onUpdateAutoApplyBlockStyles: updateAutoApplyBlockStyles,
+		};
+	} ),
+] )( Editor );

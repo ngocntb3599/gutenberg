@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { find, noop } from 'lodash';
+import { find, get, noop } from 'lodash';
 import classnames from 'classnames';
 
 /**
@@ -11,8 +11,9 @@ import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import TokenList from '@wordpress/token-list';
 import { ENTER, SPACE } from '@wordpress/keycodes';
-import { _x } from '@wordpress/i18n';
+import { _x, __ } from '@wordpress/i18n';
 import { getBlockType } from '@wordpress/blocks';
+import { CheckboxControl } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -65,6 +66,7 @@ export function replaceActiveStyle( className, activeStyle, newStyle ) {
 }
 
 function BlockStyles( {
+	autoApplyStyle,
 	styles,
 	className,
 	onChangeClassName,
@@ -74,6 +76,7 @@ function BlockStyles( {
 	block,
 	onSwitch = noop,
 	onHoverClassName = noop,
+	onUpdateAutoApplyBlockStyles,
 } ) {
 	if ( ! styles || styles.length === 0 ) {
 		return null;
@@ -105,37 +108,57 @@ function BlockStyles( {
 				return (
 					<div
 						key={ style.name }
-						className={ classnames(
-							'editor-block-styles__item block-editor-block-styles__item', {
-								'is-active': activeStyle === style,
-							}
-						) }
-						onClick={ () => updateClassName( style ) }
-						onKeyDown={ ( event ) => {
-							if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
-								event.preventDefault();
-								updateClassName( style );
-							}
-						} }
-						onMouseEnter={ () => onHoverClassName( styleClassName ) }
-						onMouseLeave={ () => onHoverClassName( null ) }
-						role="button"
-						tabIndex="0"
-						aria-label={ style.label || style.name }
+						className="block-editor-block-styles__item-container"
 					>
-						<div className="editor-block-styles__item-preview block-editor-block-styles__item-preview">
-							<BlockPreviewContent
-								name={ name }
-								attributes={ {
-									...attributes,
-									className: styleClassName,
+						<div
+							className={ classnames(
+								'editor-block-styles__item block-editor-block-styles__item', {
+									'is-active': activeStyle === style,
+								} ) }
+							onClick={ () => updateClassName( style ) }
+							onKeyDown={ ( event ) => {
+								if ( ENTER === event.keyCode || SPACE === event.keyCode ) {
+									event.preventDefault();
+									updateClassName( style );
+								}
+							} }
+							onMouseEnter={ () => onHoverClassName( styleClassName ) }
+							onMouseLeave={ () => onHoverClassName( null ) }
+							role="button"
+							tabIndex="0"
+							aria-label={ style.label || style.name }
+						>
+							<div className="editor-block-styles__item-preview block-editor-block-styles__item-preview">
+								<BlockPreviewContent
+									name={ name }
+									attributes={ {
+										...attributes,
+										className: styleClassName,
+									} }
+									innerBlocks={ block.innerBlocks }
+								/>
+							</div>
+							<div className="editor-block-styles__item-label block-editor-block-styles__item-label">
+								{ style.label || style.name }
+							</div>
+						</div>
+						{ onUpdateAutoApplyBlockStyles && (
+							<CheckboxControl
+								className="block-editor-block-styles__item-auto-apply"
+								label={ __( 'Auto apply' ) }
+								checked={ ( autoApplyStyle && autoApplyStyle === style.name ) ||
+									( ! autoApplyStyle && style.isDefault )
+								}
+								disabled={ ! autoApplyStyle && style.isDefault }
+								onChange={ ( state ) => {
+									if ( state ) {
+										onUpdateAutoApplyBlockStyles( block.name, style.isDefault ? undefined : style.name );
+										return;
+									}
+									onUpdateAutoApplyBlockStyles( block.name );
 								} }
-								innerBlocks={ block.innerBlocks }
 							/>
-						</div>
-						<div className="editor-block-styles__item-label block-editor-block-styles__item-label">
-							{ style.label || style.name }
-						</div>
+						) }
 					</div>
 				);
 			} ) }
@@ -145,10 +168,15 @@ function BlockStyles( {
 
 export default compose( [
 	withSelect( ( select, { clientId } ) => {
-		const { getBlock } = select( 'core/block-editor' );
+		const {
+			getBlock,
+			getSettings,
+		} = select( 'core/block-editor' );
 		const { getBlockStyles } = select( 'core/blocks' );
 		const block = getBlock( clientId );
 		const blockType = getBlockType( block.name );
+		const settings = getSettings();
+		const autoApplyStyle = get( settings, [ 'autoApplyBlockStyles', block.name ] );
 
 		return {
 			block,
@@ -157,6 +185,8 @@ export default compose( [
 			className: block.attributes.className || '',
 			styles: getBlockStyles( block.name ),
 			type: blockType,
+			autoApplyStyle,
+			onUpdateAutoApplyBlockStyles: settings.onUpdateAutoApplyBlockStyles,
 		};
 	} ),
 	withDispatch( ( dispatch, { clientId } ) => {

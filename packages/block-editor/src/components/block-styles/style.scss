@@ -4,8 +4,15 @@
 	justify-content: space-between;
 }
 
-.block-editor-block-styles__item {
+.block-editor-block-styles__item-container {
 	width: calc(50% - #{ $grid-size-small });
+}
+
+.block-editor-block-styles__item-auto-apply {
+	text-align: center;
+}
+
+.block-editor-block-styles__item {
 	margin: $grid-size-small 0;
 	flex-shrink: 0;
 	cursor: pointer;
