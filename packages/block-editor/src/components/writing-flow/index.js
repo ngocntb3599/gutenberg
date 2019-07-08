@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { overEvery, find, findLast, reverse, first, last } from 'lodash';
+import { overEvery, find, findLast, reverse, first, last, debounce } from 'lodash';
 
 /**
  * WordPress dependencies
@@ -16,6 +16,8 @@ import {
 	placeCaretAtHorizontalEdge,
 	placeCaretAtVerticalEdge,
 	isEntirelySelected,
+	getRectangleFromRange,
+	getScrollContainer,
 } from '@wordpress/dom';
 import { UP, DOWN, LEFT, RIGHT, isKeyboardEvent } from '@wordpress/keycodes';
 import { withSelect, withDispatch } from '@wordpress/data';
@@ -78,8 +80,12 @@ class WritingFlow extends Component {
 
 		this.onKeyDown = this.onKeyDown.bind( this );
 		this.bindContainer = this.bindContainer.bind( this );
-		this.clearVerticalRect = this.clearVerticalRect.bind( this );
+		this.onMouseDown = this.onMouseDown.bind( this );
 		this.focusLastTextField = this.focusLastTextField.bind( this );
+		this.onTouchStart = this.onTouchStart.bind( this );
+		this.onSelectionChange = this.onSelectionChange.bind( this );
+		this.calculateCaretRect = this.calculateCaretRect.bind( this );
+		this.debouncedCalculateCaretRect = debounce( this.calculateCaretRect, 100 );
 
 		/**
 		 * Here a rectangle is stored while moving the caret vertically so
@@ -91,12 +97,78 @@ class WritingFlow extends Component {
 		this.verticalRect = null;
 	}
 
+	componentDidMount() {
+		document.addEventListener( 'selectionchange', this.onSelectionChange );
+		window.addEventListener( 'scroll', this.debouncedCalculateCaretRect, true );
+		window.addEventListener( 'resize', this.debouncedCalculateCaretRect, true );
+	}
+
+	componentWillUnmount() {
+		document.removeEventListener( 'selectionchange', this.onSelectionChange );
+		window.removeEventListener( 'scroll', this.debouncedCalculateCaretRect, true );
+		window.removeEventListener( 'resize', this.debouncedCalculateCaretRect, true );
+	}
+
+	calculateCaretRect() {
+		const selection = window.getSelection();
+
+		if ( ! selection.rangeCount ) {
+			return;
+		}
+
+		this.caretRect = getRectangleFromRange( selection.getRangeAt( 0 ) );
+	}
+
+	onSelectionChange() {
+		if ( ! this.caretRect ) {
+			this.calculateCaretRect();
+			return;
+		}
+
+		if ( ! this.usedKeyboard ) {
+			return;
+		}
+
+		const selection = window.getSelection();
+
+		if ( ! selection.rangeCount ) {
+			return;
+		}
+
+		const currentCaretRect = getRectangleFromRange( selection.getRangeAt( 0 ) );
+
+		if ( ! currentCaretRect ) {
+			return;
+		}
+
+		const diff = currentCaretRect.y - this.caretRect.y;
+
+		if ( diff === 0 ) {
+			return;
+		}
+
+		const scrollContainer = getScrollContainer( this.container );
+
+		if ( scrollContainer === document.body ) {
+			window.scrollBy( 0, diff );
+		} else {
+			scrollContainer.scrollTop += diff;
+		}
+	}
+
 	bindContainer( ref ) {
 		this.container = ref;
 	}
 
-	clearVerticalRect() {
+	onMouseDown() {
+		delete this.usedKeyboard;
+		delete this.caretRect;
 		this.verticalRect = null;
+	}
+
+	onTouchStart() {
+		delete this.usedKeyboard;
+		delete this.scrollRect;
 	}
 
 	/**
@@ -228,6 +300,8 @@ class WritingFlow extends Component {
 			selectionAfterEndClientId,
 		} = this.props;
 
+		this.usedKeyboard = true;
+
 		const { keyCode, target } = event;
 		const isUp = keyCode === UP;
 		const isDown = keyCode === DOWN;
@@ -356,7 +430,9 @@ class WritingFlow extends Component {
 				<div
 					ref={ this.bindContainer }
 					onKeyDown={ this.onKeyDown }
-					onMouseDown={ this.clearVerticalRect }
+					onKeyUp={ this.onKeyUp }
+					onMouseDown={ this.onMouseDown }
+					onTouchStart={ this.onTouchStart }
 				>
 					{ children }
 				</div>
