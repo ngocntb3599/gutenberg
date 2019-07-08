@@ -16,7 +16,6 @@ import {
 	placeCaretAtHorizontalEdge,
 	placeCaretAtVerticalEdge,
 	isEntirelySelected,
-	getRectangleFromRange,
 	getScrollContainer,
 } from '@wordpress/dom';
 import { UP, DOWN, LEFT, RIGHT, isKeyboardEvent } from '@wordpress/keycodes';
@@ -84,8 +83,8 @@ class WritingFlow extends Component {
 		this.focusLastTextField = this.focusLastTextField.bind( this );
 		this.onTouchStart = this.onTouchStart.bind( this );
 		this.onSelectionChange = this.onSelectionChange.bind( this );
-		this.calculateCaretRect = this.calculateCaretRect.bind( this );
-		this.debouncedCalculateCaretRect = debounce( this.calculateCaretRect, 100 );
+		this.computeCaretRect = this.computeCaretRect.bind( this );
+		this.debouncedComputeCaretRect = debounce( this.computeCaretRect, 100 );
 
 		/**
 		 * Here a rectangle is stored while moving the caret vertically so
@@ -99,29 +98,23 @@ class WritingFlow extends Component {
 
 	componentDidMount() {
 		document.addEventListener( 'selectionchange', this.onSelectionChange );
-		window.addEventListener( 'scroll', this.debouncedCalculateCaretRect, true );
-		window.addEventListener( 'resize', this.debouncedCalculateCaretRect, true );
+		window.addEventListener( 'scroll', this.debouncedComputeCaretRect, true );
+		window.addEventListener( 'resize', this.debouncedComputeCaretRect, true );
 	}
 
 	componentWillUnmount() {
 		document.removeEventListener( 'selectionchange', this.onSelectionChange );
-		window.removeEventListener( 'scroll', this.debouncedCalculateCaretRect, true );
-		window.removeEventListener( 'resize', this.debouncedCalculateCaretRect, true );
+		window.removeEventListener( 'scroll', this.debouncedComputeCaretRect, true );
+		window.removeEventListener( 'resize', this.debouncedComputeCaretRect, true );
 	}
 
-	calculateCaretRect() {
-		const selection = window.getSelection();
-
-		if ( ! selection.rangeCount ) {
-			return;
-		}
-
-		this.caretRect = getRectangleFromRange( selection.getRangeAt( 0 ) );
+	computeCaretRect() {
+		this.caretRect = computeCaretRect();
 	}
 
 	onSelectionChange() {
 		if ( ! this.caretRect ) {
-			this.calculateCaretRect();
+			this.computeCaretRect();
 			return;
 		}
 
@@ -129,13 +122,7 @@ class WritingFlow extends Component {
 			return;
 		}
 
-		const selection = window.getSelection();
-
-		if ( ! selection.rangeCount ) {
-			return;
-		}
-
-		const currentCaretRect = getRectangleFromRange( selection.getRangeAt( 0 ) );
+		const currentCaretRect = computeCaretRect();
 
 		if ( ! currentCaretRect ) {
 			return;
