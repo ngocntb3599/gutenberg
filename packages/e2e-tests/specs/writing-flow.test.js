@@ -413,6 +413,9 @@ describe( 'adding blocks', () => {
 
 		await page.keyboard.press( 'Enter' );
 
+		// eslint-disable-next-line no-restricted-syntax
+		await page.waitFor( 1 );
+
 		expect( await page.evaluate( () =>
 			wp.dom.computeCaretRect().y
 		) ).toBe( initialPosition );
@@ -425,6 +428,9 @@ describe( 'adding blocks', () => {
 			await page.keyboard.type( 'a' );
 		}
 
+		// eslint-disable-next-line no-restricted-syntax
+		await page.waitFor( 1 );
+
 		expect( await page.evaluate( () =>
 			wp.dom.computeCaretRect().y
 		) ).toBe( initialPosition );
@@ -432,6 +438,9 @@ describe( 'adding blocks', () => {
 		// Pressing backspace will reposition the caret to the previous line.
 		// Scroll position should be adjusted again.
 		await page.keyboard.press( 'Backspace' );
+
+		// eslint-disable-next-line no-restricted-syntax
+		await page.waitFor( 1 );
 
 		expect( await page.evaluate( () =>
 			wp.dom.computeCaretRect().y
