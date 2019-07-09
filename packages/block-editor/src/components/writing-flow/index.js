@@ -82,7 +82,9 @@ class WritingFlow extends Component {
 		this.onMouseDown = this.onMouseDown.bind( this );
 		this.focusLastTextField = this.focusLastTextField.bind( this );
 		this.onTouchStart = this.onTouchStart.bind( this );
-		this.onSelectionChange = this.onSelectionChange.bind( this );
+		this.maintainCaretPositionOnSelectionChange = this.maintainCaretPositionOnSelectionChange.bind( this );
+		this.computeCaretRectOnSelectionChange = this.computeCaretRectOnSelectionChange.bind( this );
+		this.maintainCaretPosition = this.maintainCaretPosition.bind( this );
 		this.computeCaretRect = this.computeCaretRect.bind( this );
 		this.debouncedComputeCaretRect = debounce( this.computeCaretRect, 100 );
 
@@ -97,28 +99,35 @@ class WritingFlow extends Component {
 	}
 
 	componentDidMount() {
-		document.addEventListener( 'selectionchange', this.onSelectionChange );
 		window.addEventListener( 'scroll', this.debouncedComputeCaretRect, true );
 		window.addEventListener( 'resize', this.debouncedComputeCaretRect, true );
 	}
 
 	componentWillUnmount() {
-		document.removeEventListener( 'selectionchange', this.onSelectionChange );
 		window.removeEventListener( 'scroll', this.debouncedComputeCaretRect, true );
 		window.removeEventListener( 'resize', this.debouncedComputeCaretRect, true );
+		document.removeEventListener( 'selectionchange', this.maintainCaretPositionOnSelectionChange );
+		document.removeEventListener( 'selectionchange', this.computeCaretRectOnSelectionChange );
+		window.cancelAnimationFrame( this.rafId );
+		this.debouncedComputeCaretRect.cancel();
 	}
 
 	computeCaretRect() {
 		this.caretRect = computeCaretRect();
 	}
 
-	onSelectionChange() {
-		if ( ! this.caretRect ) {
-			this.computeCaretRect();
-			return;
-		}
+	maintainCaretPositionOnSelectionChange() {
+		document.removeEventListener( 'selectionchange', this.maintainCaretPositionOnSelectionChange );
+		this.maintainCaretPosition();
+	}
 
-		if ( ! this.usedKeyboard ) {
+	computeCaretRectOnSelectionChange() {
+		document.removeEventListener( 'selectionchange', this.computeCaretRectOnSelectionChange );
+		this.computeCaretRect();
+	}
+
+	maintainCaretPosition() {
+		if ( ! this.caretRect ) {
 			return;
 		}
 
@@ -155,14 +164,12 @@ class WritingFlow extends Component {
 	}
 
 	onMouseDown() {
-		delete this.usedKeyboard;
-		delete this.caretRect;
 		this.verticalRect = null;
+		document.addEventListener( 'selectionchange', this.computeCaretRectOnSelectionChange );
 	}
 
 	onTouchStart() {
-		delete this.usedKeyboard;
-		delete this.scrollRect;
+		document.addEventListener( 'selectionchange', this.computeCaretRectOnSelectionChange );
 	}
 
 	/**
@@ -294,7 +301,13 @@ class WritingFlow extends Component {
 			selectionAfterEndClientId,
 		} = this.props;
 
-		this.usedKeyboard = true;
+		// Ensure the any remaining request is cancelled.
+		window.cancelAnimationFrame( this.rafId );
+		// Use an animation frame for a smooth result.
+		this.rafId = window.requestAnimationFrame( this.maintainCaretPosition );
+		// In rare cases, the selection is not updated before the animation
+		// frame. This selection change listener is a back up.
+		document.addEventListener( 'selectionchange', this.maintainCaretPositionOnSelectionChange );
 
 		const { keyCode, target } = event;
 		const isUp = keyCode === UP;
