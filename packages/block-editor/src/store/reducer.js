@@ -688,7 +688,7 @@ export function blockSelection( state = BLOCK_SELECTION_INITIAL_STATE, action ) 
 			}
 
 			return BLOCK_SELECTION_INITIAL_STATE;
-		case 'REPLACE_BLOCKS': {
+		case 'REPLACE_BLOCKS_AUGMENTED_WITH_CHILDREN': {
 			if ( action.clientIds.indexOf( state.start.clientId ) === -1 ) {
 				return state;
 			}
