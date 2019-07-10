@@ -943,8 +943,6 @@ export function isCaretWithinFormattedText( state = false, action ) {
 	return state;
 }
 
-const BLOCK_SELECTION_EMPTY_OBJECT = {};
-
 /**
  * Reducer returning the block selection's state.
  *
@@ -953,17 +951,11 @@ const BLOCK_SELECTION_EMPTY_OBJECT = {};
  *
  * @return {Object} Updated state.
  */
-export function blockSelection( state = {
-	start: BLOCK_SELECTION_EMPTY_OBJECT,
-	end: BLOCK_SELECTION_EMPTY_OBJECT,
-}, action ) {
+export function blockSelection( state = { start: {}, end: {} }, action ) {
 	switch ( action.type ) {
 		case 'CLEAR_SELECTED_BLOCK': {
-			const start = BLOCK_SELECTION_EMPTY_OBJECT;
-			const end = BLOCK_SELECTION_EMPTY_OBJECT;
-
-			if ( start !== state.start || end !== state.end ) {
-				return { start, end };
+			if ( state.start.clientId || state.end.clientId ) {
+				return { start: {}, end: {} };
 			}
 
 			return state;
@@ -1007,10 +999,7 @@ export function blockSelection( state = {
 				return state;
 			}
 
-			return {
-				start: BLOCK_SELECTION_EMPTY_OBJECT,
-				end: BLOCK_SELECTION_EMPTY_OBJECT,
-			};
+			return { start: {}, end: {} };
 		case 'REPLACE_BLOCKS': {
 			if ( action.clientIds.indexOf( state.start.clientId ) === -1 ) {
 				return state;
@@ -1020,10 +1009,7 @@ export function blockSelection( state = {
 			const blockToSelect = action.blocks[ indexToSelect ];
 
 			if ( ! blockToSelect ) {
-				return {
-					start: BLOCK_SELECTION_EMPTY_OBJECT,
-					end: BLOCK_SELECTION_EMPTY_OBJECT,
-				};
+				return { start: {}, end: {} };
 			}
 
 			if (
@@ -1053,15 +1039,11 @@ export function blockSelection( state = {
 			};
 		case 'RESET_BLOCKS': {
 			const {
-				selectionStart: start = BLOCK_SELECTION_EMPTY_OBJECT,
-				selectionEnd: end = BLOCK_SELECTION_EMPTY_OBJECT,
+				selectionStart: start = {},
+				selectionEnd: end = {},
 			} = action;
 
-			if ( start !== state.start || end !== state.end ) {
-				return { start, end };
-			}
-
-			return state;
+			return { start, end };
 		}
 	}
 
