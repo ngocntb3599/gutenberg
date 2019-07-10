@@ -6,6 +6,7 @@ import {
 	clickBlockAppender,
 	createNewPost,
 	deactivatePlugin,
+	switchToEditMode,
 } from '@wordpress/e2e-test-utils';
 
 describe( 'Using Hooks API', () => {
@@ -28,6 +29,7 @@ describe( 'Using Hooks API', () => {
 	} );
 
 	it( 'Pressing reset block button resets the block', async () => {
+		await switchToEditMode();
 		await clickBlockAppender();
 		await page.keyboard.type( 'First paragraph' );
 		const paragraphContent = await page.$eval( 'div[data-type="core/paragraph"] p', ( element ) => element.textContent );
