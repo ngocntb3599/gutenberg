@@ -275,6 +275,13 @@ describe( 'state', () => {
 						chicken: {},
 						[ newChildBlockId ]: {},
 					},
+					selection: {
+						start: {},
+						end: {},
+						initialPosition: null,
+						isEnabled: true,
+						isMultiSelecting: false,
+					},
 				} );
 				expect( state.cache.chicken ).not.toBe( existingState.cache.chicken );
 			} );
@@ -352,6 +359,13 @@ describe( 'state', () => {
 					cache: {
 						chicken: {},
 						[ newChildBlockId ]: {},
+					},
+					selection: {
+						start: {},
+						end: {},
+						initialPosition: null,
+						isEnabled: true,
+						isMultiSelecting: false,
 					},
 				} );
 				expect( state.cache.chicken ).not.toBe( existingState.cache.chicken );
@@ -487,6 +501,13 @@ describe( 'state', () => {
 						[ newChildBlockId2 ]: {},
 						[ newChildBlockId3 ]: {},
 					},
+					selection: {
+						start: {},
+						end: {},
+						initialPosition: null,
+						isEnabled: true,
+						isMultiSelecting: false,
+					},
 				} );
 			} );
 
@@ -576,6 +597,13 @@ describe( 'state', () => {
 						chicken: {},
 						[ newChildBlockId ]: {},
 					},
+					selection: {
+						start: {},
+						end: {},
+						initialPosition: null,
+						isEnabled: true,
+						isMultiSelecting: false,
+					},
 				} );
 
 				// the cache key of the parent should be updated
@@ -594,6 +622,13 @@ describe( 'state', () => {
 				isPersistentChange: true,
 				isIgnoredChange: false,
 				cache: {},
+				selection: {
+					start: {},
+					end: {},
+					initialPosition: null,
+					isEnabled: true,
+					isMultiSelecting: false,
+				},
 			} );
 		} );
 

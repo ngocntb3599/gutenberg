@@ -364,6 +364,18 @@ _Returns_
 
 -   `Array`: Block list.
 
+<a name="getEditorSelection" href="#getEditorSelection">#</a> **getEditorSelection**
+
+Return the current selection object.
+
+_Parameters_
+
+-   _state_ `Object`: 
+
+_Returns_
+
+-   `Array`: Selection object.
+
 <a name="getEditorSettings" href="#getEditorSettings">#</a> **getEditorSettings**
 
 Returns the post editor settings.
@@ -1210,6 +1222,18 @@ _Parameters_
 
 -   _blocks_ `Array`: Block Array.
 -   _options_ `?Object`: Optional options.
+
+_Returns_
+
+-   `Object`: Action object
+
+<a name="resetEditorSelection" href="#resetEditorSelection">#</a> **resetEditorSelection**
+
+Returns an action object used to signal that the selection has been updated.
+
+_Parameters_
+
+-   _selection_ `Object`: Selection object.
 
 _Returns_
 

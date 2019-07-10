@@ -136,6 +136,7 @@ export const editor = flow( [
 		ignoreTypes: [
 			'RESET_POST',
 			'UPDATE_POST',
+			'RESET_EDITOR_SELECTION',
 		],
 		shouldOverwriteState,
 	} ),
@@ -155,6 +156,13 @@ export const editor = flow( [
 
 		return state;
 	} ),
+	selection( state = { start: {}, end: {} }, { type, selection } ) {
+		if ( type === 'RESET_EDITOR_SELECTION' && selection !== state ) {
+			return selection;
+		}
+
+		return state;
+	},
 	edits( state = {}, action ) {
 		switch ( action.type ) {
 			case 'EDIT_POST':

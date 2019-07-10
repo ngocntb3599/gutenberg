@@ -133,7 +133,9 @@ class EditorProvider extends Component {
 		const {
 			children,
 			blocks,
+			selection,
 			resetEditorBlocks,
+			resetEditorSelection,
 			isReady,
 			settings,
 			meta,
@@ -154,8 +156,10 @@ class EditorProvider extends Component {
 		return (
 			<BlockEditorProvider
 				value={ blocks }
+				selection={ selection }
 				onInput={ resetEditorBlocksWithoutUndoLevel }
 				onChange={ resetEditorBlocks }
+				onSelectionChange={ resetEditorSelection }
 				settings={ editorSettings }
 				useSubRegistry={ false }
 			>
@@ -173,6 +177,7 @@ export default compose( [
 		const {
 			__unstableIsEditorReady: isEditorReady,
 			getEditorBlocks,
+			getEditorSelection,
 			getEditedPostAttribute,
 			__experimentalGetReusableBlocks,
 		} = select( 'core/editor' );
@@ -181,6 +186,7 @@ export default compose( [
 		return {
 			isReady: isEditorReady(),
 			blocks: getEditorBlocks(),
+			selection: getEditorSelection(),
 			meta: getEditedPostAttribute( 'meta' ),
 			reusableBlocks: __experimentalGetReusableBlocks(),
 			hasUploadPermissions: defaultTo( canUser( 'create', 'media' ), true ),
@@ -191,6 +197,7 @@ export default compose( [
 			setupEditor,
 			updatePostLock,
 			resetEditorBlocks,
+			resetEditorSelection,
 			editPost,
 			updateEditorSettings,
 		} = dispatch( 'core/editor' );
@@ -201,6 +208,7 @@ export default compose( [
 			updatePostLock,
 			createWarningNotice,
 			resetEditorBlocks,
+			resetEditorSelection,
 			updateEditorSettings,
 			resetEditorBlocksWithoutUndoLevel( blocks ) {
 				resetEditorBlocks( blocks, {

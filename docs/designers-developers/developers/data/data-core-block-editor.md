@@ -504,6 +504,18 @@ _Returns_
 
 -   `?Object`: Selected block.
 
+<a name="getSelection" href="#getSelection">#</a> **getSelection**
+
+Returns the current selection object.
+
+_Parameters_
+
+-   _state_ `Object`: Block editor state.
+
+_Returns_
+
+-   `Object`: Selection object
+
 <a name="getSelectionEnd" href="#getSelectionEnd">#</a> **getSelectionEnd**
 
 Returns the current selection end block client ID, attribute key and text
@@ -691,7 +703,7 @@ _Returns_
 Returns true if the block corresponding to the specified client ID is
 currently selected but isn't the last of the selected blocks. Here "last"
 refers to the block sequence in the document, _not_ the sequence of
-multi-selection, which is why `state.blockSelection.end` isn't used.
+multi-selection, which is why `state.blocks.selection.end` isn't used.
 
 _Parameters_
 
@@ -1016,6 +1028,19 @@ content reflected as an edit in state.
 _Parameters_
 
 -   _blocks_ `Array`: Array of blocks.
+
+_Returns_
+
+-   `Object`: Action object.
+
+<a name="resetSelection" href="#resetSelection">#</a> **resetSelection**
+
+Returns an action object used in signalling that selection state should be
+reset to the specified selection object.
+
+_Parameters_
+
+-   _selection_ `Array`: Selection object.
 
 _Returns_
 

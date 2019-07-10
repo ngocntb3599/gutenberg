@@ -107,11 +107,13 @@ describe( 'effects', () => {
 			};
 			const dispatch = jest.fn();
 			const getState = () => ( {
-				blockSelection: {
-					start: {
-						clientId: blockB.clientId,
-						attributeKey: 'content',
-						offset: 0,
+				blocks: {
+					selection: {
+						start: {
+							clientId: blockB.clientId,
+							attributeKey: 'content',
+							offset: 0,
+						},
 					},
 				},
 			} );
@@ -171,11 +173,13 @@ describe( 'effects', () => {
 			};
 			const dispatch = jest.fn();
 			const getState = () => ( {
-				blockSelection: {
-					start: {
-						clientId: blockB.clientId,
-						attributeKey: 'content',
-						offset: 0,
+				blocks: {
+					selection: {
+						start: {
+							clientId: blockB.clientId,
+							attributeKey: 'content',
+							offset: 0,
+						},
 					},
 				},
 			} );
@@ -238,11 +242,13 @@ describe( 'effects', () => {
 			};
 			const dispatch = jest.fn();
 			const getState = () => ( {
-				blockSelection: {
-					start: {
-						clientId: blockB.clientId,
-						attributeKey: 'content2',
-						offset: 0,
+				blocks: {
+					selection: {
+						start: {
+							clientId: blockB.clientId,
+							attributeKey: 'content2',
+							offset: 0,
+						},
 					},
 				},
 			} );

@@ -11,6 +11,34 @@ import {
 	saveDraft,
 } from '@wordpress/e2e-test-utils';
 
+const getSelection = async () => {
+	return await page.evaluate( () => {
+		const selectedBlock = document.activeElement.closest( '.wp-block' );
+		const blocks = Array.from( document.querySelectorAll( '.wp-block' ) );
+		const blockIndex = blocks.indexOf( selectedBlock );
+
+		if ( blockIndex === -1 ) {
+			return {};
+		}
+
+		const editables = Array.from( document.querySelectorAll( '[contenteditable]' ) );
+		const editableIndex = editables.indexOf( document.activeElement );
+
+		if ( editableIndex === -1 ) {
+			return { blockIndex };
+		}
+
+		const { startOffset, endOffset } = window.getSelection().getRangeAt( 0 );
+
+		return {
+			blockIndex,
+			editableIndex,
+			startOffset,
+			endOffset,
+		};
+	} );
+};
+
 describe( 'undo', () => {
 	beforeEach( async () => {
 		await createNewPost();
@@ -28,6 +56,13 @@ describe( 'undo', () => {
 		await pressKeyWithModifier( 'primary', 'z' );
 
 		expect( await getEditedPostContent() ).toMatchSnapshot();
+
+		expect( await getSelection() ).toEqual( {
+			blockIndex: 1,
+			editableIndex: 0,
+			startOffset: 'before pause'.length,
+			endOffset: 'before pause'.length,
+		} );
 	} );
 
 	it( 'should undo typing after non input change', async () => {
@@ -42,6 +77,13 @@ describe( 'undo', () => {
 		await pressKeyWithModifier( 'primary', 'z' );
 
 		expect( await getEditedPostContent() ).toMatchSnapshot();
+
+		expect( await getSelection() ).toEqual( {
+			blockIndex: 1,
+			editableIndex: 0,
+			startOffset: 'before keyboard '.length,
+			endOffset: 'before keyboard '.length,
+		} );
 	} );
 
 	it( 'Should undo to expected level intervals', async () => {
@@ -56,12 +98,43 @@ describe( 'undo', () => {
 		expect( await getEditedPostContent() ).toMatchSnapshot();
 
 		await pressKeyWithModifier( 'primary', 'z' ); // Undo 3rd paragraph text.
+
+		expect( await getSelection() ).toEqual( {
+			blockIndex: 3,
+			editableIndex: 2,
+			startOffset: 0,
+			endOffset: 0,
+		} );
+
 		await pressKeyWithModifier( 'primary', 'z' ); // Undo 3rd block.
+
+		expect( await getSelection() ).toEqual( {} );
+
 		await pressKeyWithModifier( 'primary', 'z' ); // Undo 2nd paragraph text.
+
+		expect( await getSelection() ).toEqual( {
+			blockIndex: 2,
+			editableIndex: 1,
+			startOffset: 0,
+			endOffset: 0,
+		} );
+
 		await pressKeyWithModifier( 'primary', 'z' ); // Undo 2nd block.
+
+		expect( await getSelection() ).toEqual( {} );
+
 		await pressKeyWithModifier( 'primary', 'z' ); // Undo 1st paragraph text.
+
+		expect( await getSelection() ).toEqual( {
+			blockIndex: 1,
+			editableIndex: 0,
+			startOffset: 0,
+			endOffset: 0,
+		} );
+
 		await pressKeyWithModifier( 'primary', 'z' ); // Undo 1st block.
 
+		expect( await getSelection() ).toEqual( {} );
 		expect( await getEditedPostContent() ).toBe( '' );
 		// After undoing every action, there should be no more undo history.
 		expect( await page.$( '.editor-history__undo[aria-disabled="true"]' ) ).not.toBeNull();
