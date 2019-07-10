@@ -353,7 +353,8 @@ const withBlockCache = ( reducer ) => ( state = {}, action ) => {
  * Higher-order reducer intended to augment the blocks reducer, assigning an
  * `isPersistentChange` property value corresponding to whether a change in
  * state can be considered as persistent. All changes are considered persistent
- * except when updating the same block attribute as in the previous action.
+ * except selection changes and updating the same block attribute as the
+ * previous action.
  *
  * @param {Function} reducer Original reducer function.
  *
