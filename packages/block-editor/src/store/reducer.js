@@ -1228,6 +1228,22 @@ export const blockListSettings = ( state = {}, action ) => {
 	return state;
 };
 
+/**
+ * Reducer returning the current keyboard mode (navigation or edit).
+ *
+ * @param {string} state  Current state.
+ * @param {Object} action Dispatched action.
+ *
+ * @return {string} Updated state.
+ */
+export function keyboardMode( state = 'navigation', action ) {
+	if ( action.type === 'SET_KEYBOARD_MODE' ) {
+		return action.mode;
+	}
+
+	return state;
+}
+
 export default withPostMetaUpdateCacheReset(
 	combineReducers( {
 		blocks,
@@ -1240,5 +1256,6 @@ export default withPostMetaUpdateCacheReset(
 		template,
 		settings,
 		preferences,
+		keyboardMode,
 	} )
 );
