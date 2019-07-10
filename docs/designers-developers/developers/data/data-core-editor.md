@@ -1239,18 +1239,6 @@ _Returns_
 
 -   `Object`: Action object
 
-<a name="resetEditorSelection" href="#resetEditorSelection">#</a> **resetEditorSelection**
-
-Returns an action object used to signal that the selection has been updated.
-
-_Parameters_
-
--   _selection_ `Object`: Selection object.
-
-_Returns_
-
--   `Object`: Action object
-
 <a name="resetPost" href="#resetPost">#</a> **resetPost**
 
 Returns an action object used in signalling that the latest version of the
