@@ -913,7 +913,7 @@ export function hasMultiSelection( state ) {
  * @return {boolean} True if multi-selecting, false if not.
  */
 export function isMultiSelecting( state ) {
-	return state.blocks.selection.isMultiSelecting;
+	return state.isMultiSelecting;
 }
 
 /**
@@ -924,7 +924,7 @@ export function isMultiSelecting( state ) {
  * @return {boolean} True if it should be possible to multi-select blocks, false if multi-selection is disabled.
  */
 export function isSelectionEnabled( state ) {
-	return state.blocks.selection.isEnabled;
+	return state.isSelectionEnabled;
 }
 
 /**
