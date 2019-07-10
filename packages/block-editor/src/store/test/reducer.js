@@ -21,9 +21,9 @@ import {
 	isUpdatingSameBlockAttribute,
 	blocks,
 	isTyping,
-	isMultiSelecting,
 	isCaretWithinFormattedText,
 	blockSelection,
+	isMultiSelecting,
 	preferences,
 	blocksMode,
 	insertionPoint,
@@ -276,10 +276,6 @@ describe( 'state', () => {
 						chicken: {},
 						[ newChildBlockId ]: {},
 					},
-					selection: {
-						start: {},
-						end: {},
-					},
 				} );
 				expect( state.cache.chicken ).not.toBe( existingState.cache.chicken );
 			} );
@@ -357,10 +353,6 @@ describe( 'state', () => {
 					cache: {
 						chicken: {},
 						[ newChildBlockId ]: {},
-					},
-					selection: {
-						start: {},
-						end: {},
 					},
 				} );
 				expect( state.cache.chicken ).not.toBe( existingState.cache.chicken );
@@ -496,10 +488,6 @@ describe( 'state', () => {
 						[ newChildBlockId2 ]: {},
 						[ newChildBlockId3 ]: {},
 					},
-					selection: {
-						start: {},
-						end: {},
-					},
 				} );
 			} );
 
@@ -589,10 +577,6 @@ describe( 'state', () => {
 						chicken: {},
 						[ newChildBlockId ]: {},
 					},
-					selection: {
-						start: {},
-						end: {},
-					},
 				} );
 
 				// the cache key of the parent should be updated
@@ -611,10 +595,6 @@ describe( 'state', () => {
 				isPersistentChange: true,
 				isIgnoredChange: false,
 				cache: {},
-				selection: {
-					start: {},
-					end: {},
-				},
 			} );
 		} );
 
@@ -1814,7 +1794,7 @@ describe( 'state', () => {
 		} );
 
 		it( 'should set multi selection', () => {
-			const original = deepFreeze( {} );
+			const original = deepFreeze( { isMultiSelecting: false } );
 			const state = blockSelection( original, {
 				type: 'MULTI_SELECT',
 				start: 'ribs',
@@ -1828,7 +1808,7 @@ describe( 'state', () => {
 		} );
 
 		it( 'should set continuous multi selection', () => {
-			const original = deepFreeze( {} );
+			const original = deepFreeze( { isMultiSelecting: true } );
 			const state = blockSelection( original, {
 				type: 'MULTI_SELECT',
 				start: 'ribs',
@@ -1848,7 +1828,6 @@ describe( 'state', () => {
 
 			expect( state ).toBe( true );
 		} );
-
 		it( 'should end multi selection with selection', () => {
 			const state = isMultiSelecting( true, {
 				type: 'STOP_MULTI_SELECT',
@@ -1940,7 +1919,7 @@ describe( 'state', () => {
 		it( 'should replace the selected block', () => {
 			const original = deepFreeze( { start: { clientId: 'chicken' }, end: { clientId: 'chicken' } } );
 			const state = blockSelection( original, {
-				type: 'REPLACE_BLOCKS_AUGMENTED_WITH_CHILDREN',
+				type: 'REPLACE_BLOCKS',
 				clientIds: [ 'chicken' ],
 				blocks: [ {
 					clientId: 'wings',
@@ -1957,7 +1936,7 @@ describe( 'state', () => {
 		it( 'should not replace the selected block if we keep it at the end when replacing blocks', () => {
 			const original = deepFreeze( { start: { clientId: 'wings' }, end: { clientId: 'wings' } } );
 			const state = blockSelection( original, {
-				type: 'REPLACE_BLOCKS_AUGMENTED_WITH_CHILDREN',
+				type: 'REPLACE_BLOCKS',
 				clientIds: [ 'wings' ],
 				blocks: [
 					{
@@ -1976,7 +1955,7 @@ describe( 'state', () => {
 		it( 'should replace the selected block if we keep it not at the end when replacing blocks', () => {
 			const original = deepFreeze( { start: { clientId: 'chicken' }, end: { clientId: 'chicken' } } );
 			const state = blockSelection( original, {
-				type: 'REPLACE_BLOCKS_AUGMENTED_WITH_CHILDREN',
+				type: 'REPLACE_BLOCKS',
 				clientIds: [ 'chicken' ],
 				blocks: [
 					{
@@ -1998,7 +1977,7 @@ describe( 'state', () => {
 		it( 'should reset if replacing with empty set', () => {
 			const original = deepFreeze( { start: { clientId: 'chicken' }, end: { clientId: 'chicken' } } );
 			const state = blockSelection( original, {
-				type: 'REPLACE_BLOCKS_AUGMENTED_WITH_CHILDREN',
+				type: 'REPLACE_BLOCKS',
 				clientIds: [ 'chicken' ],
 				blocks: [],
 			} );
@@ -2012,7 +1991,7 @@ describe( 'state', () => {
 		it( 'should keep the selected block', () => {
 			const original = deepFreeze( { start: { clientId: 'chicken' }, end: { clientId: 'chicken' } } );
 			const state = blockSelection( original, {
-				type: 'REPLACE_BLOCKS_AUGMENTED_WITH_CHILDREN',
+				type: 'REPLACE_BLOCKS',
 				clientIds: [ 'ribs' ],
 				blocks: [ {
 					clientId: 'wings',

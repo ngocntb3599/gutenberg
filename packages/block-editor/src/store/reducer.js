@@ -353,8 +353,7 @@ const withBlockCache = ( reducer ) => ( state = {}, action ) => {
  * Higher-order reducer intended to augment the blocks reducer, assigning an
  * `isPersistentChange` property value corresponding to whether a change in
  * state can be considered as persistent. All changes are considered persistent
- * except selection changes and updating the same block attribute as the
- * previous action.
+ * except when updating the same block attribute as in the previous action.
  *
  * @param {Function} reducer Original reducer function.
  *
@@ -365,24 +364,6 @@ function withPersistentBlockChange( reducer ) {
 
 	return ( state, action ) => {
 		let nextState = reducer( state, action );
-
-		const selectionActions = new Set( [
-			'SELECTION_CHANGE',
-			'TOGGLE_SELECTION',
-			'SELECT_BLOCK',
-			'MULTI_SELECT',
-			'START_MULTI_SELECT',
-			'STOP_MULTI_SELECT',
-			'CLEAR_SELECTED_BLOCK',
-			'RESET_SELECTION',
-		] );
-
-		if ( selectionActions.has( action.type ) ) {
-			return {
-				...nextState,
-				isPersistentChange: false,
-			};
-		}
 
 		const isExplicitPersistentChange = action.type === 'MARK_LAST_CHANGE_AS_PERSISTENT';
 
@@ -495,12 +476,6 @@ const withInnerBlocksRemoveCascade = ( reducer ) => ( state, action ) => {
 	return reducer( state, action );
 };
 
-const BLOCK_SELECTION_EMPTY_OBJECT = {};
-const BLOCK_SELECTION_INITIAL_STATE = {
-	start: BLOCK_SELECTION_EMPTY_OBJECT,
-	end: BLOCK_SELECTION_EMPTY_OBJECT,
-};
-
 /**
  * Higher-order reducer which targets the combined blocks reducer and handles
  * the `RESET_BLOCKS` action. When dispatched, this action will replace all
@@ -513,39 +488,28 @@ const BLOCK_SELECTION_INITIAL_STATE = {
  */
 const withBlockReset = ( reducer ) => ( state, action ) => {
 	if ( state && action.type === 'RESET_BLOCKS' ) {
-		const {
-			blocks,
-			selectionStart = BLOCK_SELECTION_EMPTY_OBJECT,
-			selectionEnd = BLOCK_SELECTION_EMPTY_OBJECT,
-		} = action;
-
 		const visibleClientIds = getNestedBlockClientIds( state.order );
 		return {
 			...state,
 			byClientId: {
 				...omit( state.byClientId, visibleClientIds ),
-				...getFlattenedBlocksWithoutAttributes( blocks ),
+				...getFlattenedBlocksWithoutAttributes( action.blocks ),
 			},
 			attributes: {
 				...omit( state.attributes, visibleClientIds ),
-				...getFlattenedBlockAttributes( blocks ),
+				...getFlattenedBlockAttributes( action.blocks ),
 			},
 			order: {
 				...omit( state.order, visibleClientIds ),
-				...mapBlockOrder( blocks ),
+				...mapBlockOrder( action.blocks ),
 			},
 			parents: {
 				...omit( state.parents, visibleClientIds ),
-				...mapBlockParents( blocks ),
+				...mapBlockParents( action.blocks ),
 			},
 			cache: {
 				...omit( state.cache, visibleClientIds ),
-				...mapValues( flattenBlocks( blocks ), () => ( {} ) ),
-			},
-			selection: {
-				...BLOCK_SELECTION_INITIAL_STATE,
-				start: selectionStart,
-				end: selectionEnd,
+				...mapValues( flattenBlocks( action.blocks ), () => ( {} ) ),
 			},
 		};
 	}
@@ -621,99 +585,6 @@ const withSaveReusableBlock = ( reducer ) => ( state, action ) => {
 
 	return reducer( state, action );
 };
-
-/**
- * Reducer returning the block selection's state.
- *
- * @param {Object} state  Current state.
- * @param {Object} action Dispatched action.
- *
- * @return {Object} Updated state.
- */
-export function blockSelection( state = BLOCK_SELECTION_INITIAL_STATE, action ) {
-	switch ( action.type ) {
-		case 'CLEAR_SELECTED_BLOCK':
-			return BLOCK_SELECTION_INITIAL_STATE;
-		case 'MULTI_SELECT':
-			return {
-				start: { clientId: action.start },
-				end: { clientId: action.end },
-			};
-		case 'SELECT_BLOCK':
-			if (
-				action.clientId === state.start.clientId &&
-				action.clientId === state.end.clientId
-			) {
-				return state;
-			}
-
-			return {
-				initialPosition: action.initialPosition,
-				start: { clientId: action.clientId },
-				end: { clientId: action.clientId },
-			};
-		case 'REPLACE_INNER_BLOCKS': // REPLACE_INNER_BLOCKS and INSERT_BLOCKS should follow the same logic.
-		case 'INSERT_BLOCKS': {
-			if ( action.updateSelection ) {
-				return {
-					start: { clientId: action.blocks[ 0 ].clientId },
-					end: { clientId: action.blocks[ 0 ].clientId },
-				};
-			}
-
-			return state;
-		}
-		case 'REMOVE_BLOCKS':
-			if (
-				! action.clientIds ||
-				! action.clientIds.length ||
-				action.clientIds.indexOf( state.start.clientId ) === -1
-			) {
-				return state;
-			}
-
-			return BLOCK_SELECTION_INITIAL_STATE;
-		case 'REPLACE_BLOCKS_AUGMENTED_WITH_CHILDREN': {
-			if ( action.clientIds.indexOf( state.start.clientId ) === -1 ) {
-				return state;
-			}
-
-			const indexToSelect = action.indexToSelect || action.blocks.length - 1;
-			const blockToSelect = action.blocks[ indexToSelect ];
-
-			if ( ! blockToSelect ) {
-				return BLOCK_SELECTION_INITIAL_STATE;
-			}
-
-			if (
-				blockToSelect.clientId === state.start.clientId &&
-				blockToSelect.clientId === state.end.clientId
-			) {
-				return state;
-			}
-
-			return {
-				start: { clientId: blockToSelect.clientId },
-				end: { clientId: blockToSelect.clientId },
-			};
-		}
-		case 'SELECTION_CHANGE':
-			return {
-				start: {
-					clientId: action.clientId,
-					attributeKey: action.attributeKey,
-					offset: action.startOffset,
-				},
-				end: {
-					clientId: action.clientId,
-					attributeKey: action.attributeKey,
-					offset: action.endOffset,
-				},
-			};
-	}
-
-	return state;
-}
 
 /**
  * Reducer returning the blocks state.
@@ -1030,8 +901,6 @@ export const blocks = flow(
 
 		return state;
 	},
-
-	selection: blockSelection,
 } );
 
 /**
@@ -1074,6 +943,131 @@ export function isCaretWithinFormattedText( state = false, action ) {
 	return state;
 }
 
+const BLOCK_SELECTION_EMPTY_OBJECT = {};
+
+/**
+ * Reducer returning the block selection's state.
+ *
+ * @param {Object} state  Current state.
+ * @param {Object} action Dispatched action.
+ *
+ * @return {Object} Updated state.
+ */
+export function blockSelection( state = {
+	start: BLOCK_SELECTION_EMPTY_OBJECT,
+	end: BLOCK_SELECTION_EMPTY_OBJECT,
+}, action ) {
+	switch ( action.type ) {
+		case 'CLEAR_SELECTED_BLOCK': {
+			const start = BLOCK_SELECTION_EMPTY_OBJECT;
+			const end = BLOCK_SELECTION_EMPTY_OBJECT;
+
+			if ( start !== state.start || end !== state.end ) {
+				return { start, end };
+			}
+
+			return state;
+		}
+
+		case 'MULTI_SELECT':
+			return {
+				start: { clientId: action.start },
+				end: { clientId: action.end },
+			};
+		case 'SELECT_BLOCK':
+			if (
+				action.clientId === state.start.clientId &&
+				action.clientId === state.end.clientId
+			) {
+				return state;
+			}
+
+			return {
+				initialPosition: action.initialPosition,
+				start: { clientId: action.clientId },
+				end: { clientId: action.clientId },
+			};
+		case 'REPLACE_INNER_BLOCKS': // REPLACE_INNER_BLOCKS and INSERT_BLOCKS should follow the same logic.
+		case 'INSERT_BLOCKS': {
+			if ( action.updateSelection ) {
+				return {
+					start: { clientId: action.blocks[ 0 ].clientId },
+					end: { clientId: action.blocks[ 0 ].clientId },
+				};
+			}
+
+			return state;
+		}
+		case 'REMOVE_BLOCKS':
+			if (
+				! action.clientIds ||
+				! action.clientIds.length ||
+				action.clientIds.indexOf( state.start.clientId ) === -1
+			) {
+				return state;
+			}
+
+			return {
+				start: BLOCK_SELECTION_EMPTY_OBJECT,
+				end: BLOCK_SELECTION_EMPTY_OBJECT,
+			};
+		case 'REPLACE_BLOCKS': {
+			if ( action.clientIds.indexOf( state.start.clientId ) === -1 ) {
+				return state;
+			}
+
+			const indexToSelect = action.indexToSelect || action.blocks.length - 1;
+			const blockToSelect = action.blocks[ indexToSelect ];
+
+			if ( ! blockToSelect ) {
+				return {
+					start: BLOCK_SELECTION_EMPTY_OBJECT,
+					end: BLOCK_SELECTION_EMPTY_OBJECT,
+				};
+			}
+
+			if (
+				blockToSelect.clientId === state.start.clientId &&
+				blockToSelect.clientId === state.end.clientId
+			) {
+				return state;
+			}
+
+			return {
+				start: { clientId: blockToSelect.clientId },
+				end: { clientId: blockToSelect.clientId },
+			};
+		}
+		case 'SELECTION_CHANGE':
+			return {
+				start: {
+					clientId: action.clientId,
+					attributeKey: action.attributeKey,
+					offset: action.startOffset,
+				},
+				end: {
+					clientId: action.clientId,
+					attributeKey: action.attributeKey,
+					offset: action.endOffset,
+				},
+			};
+		case 'RESET_BLOCKS': {
+			const {
+				selectionStart: start = BLOCK_SELECTION_EMPTY_OBJECT,
+				selectionEnd: end = BLOCK_SELECTION_EMPTY_OBJECT,
+			} = action;
+
+			if ( start !== state.start || end !== state.end ) {
+				return { start, end };
+			}
+
+			return state;
+		}
+	}
+
+	return state;
+}
+
 /**
  * Reducer returning whether the user is multi-selecting.
  *
@@ -1102,7 +1096,7 @@ export function isMultiSelecting( state = false, action ) {
  *
  * @return {boolean} Updated state.
  */
-export function isSelectionEnabled( state = false, action ) {
+export function isSelectionEnabled( state = true, action ) {
 	switch ( action.type ) {
 		case 'TOGGLE_SELECTION':
 			return action.isSelectionEnabled;
@@ -1268,6 +1262,9 @@ export default withPostMetaUpdateCacheReset(
 		blocks,
 		isTyping,
 		isCaretWithinFormattedText,
+		blockSelection,
+		isMultiSelecting,
+		isSelectionEnabled,
 		blocksMode,
 		blockListSettings,
 		insertionPoint,
