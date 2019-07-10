@@ -504,18 +504,6 @@ _Returns_
 
 -   `?Object`: Selected block.
 
-<a name="getSelection" href="#getSelection">#</a> **getSelection**
-
-Returns the current selection object.
-
-_Parameters_
-
--   _state_ `Object`: Block editor state.
-
-_Returns_
-
--   `Object`: Selection object
-
 <a name="getSelectionEnd" href="#getSelectionEnd">#</a> **getSelectionEnd**
 
 Returns the current selection end block client ID, attribute key and text
@@ -1028,19 +1016,8 @@ content reflected as an edit in state.
 _Parameters_
 
 -   _blocks_ `Array`: Array of blocks.
-
-_Returns_
-
--   `Object`: Action object.
-
-<a name="resetSelection" href="#resetSelection">#</a> **resetSelection**
-
-Returns an action object used in signalling that selection state should be
-reset to the specified selection object.
-
-_Parameters_
-
--   _selection_ `Array`: Selection object.
+-   _selectionStart_ `Array`: Selection start object.
+-   _selectionEnd_ `Array`: Selection end object.
 
 _Returns_
 
