@@ -133,9 +133,9 @@ class EditorProvider extends Component {
 		const {
 			children,
 			blocks,
-			selection,
+			selectionStart,
+			selectionEnd,
 			resetEditorBlocks,
-			resetEditorSelection,
 			isReady,
 			settings,
 			meta,
@@ -156,10 +156,10 @@ class EditorProvider extends Component {
 		return (
 			<BlockEditorProvider
 				value={ blocks }
-				selection={ selection }
 				onInput={ resetEditorBlocksWithoutUndoLevel }
 				onChange={ resetEditorBlocks }
-				onSelectionChange={ resetEditorSelection }
+				selectionStart={ selectionStart }
+				selectionEnd={ selectionEnd }
 				settings={ editorSettings }
 				useSubRegistry={ false }
 			>
@@ -177,7 +177,8 @@ export default compose( [
 		const {
 			__unstableIsEditorReady: isEditorReady,
 			getEditorBlocks,
-			getEditorSelection,
+			getEditorSelectionStart,
+			getEditorSelectionEnd,
 			getEditedPostAttribute,
 			__experimentalGetReusableBlocks,
 		} = select( 'core/editor' );
@@ -186,7 +187,8 @@ export default compose( [
 		return {
 			isReady: isEditorReady(),
 			blocks: getEditorBlocks(),
-			selection: getEditorSelection(),
+			selectionStart: getEditorSelectionStart(),
+			selectionEnd: getEditorSelectionEnd(),
 			meta: getEditedPostAttribute( 'meta' ),
 			reusableBlocks: __experimentalGetReusableBlocks(),
 			hasUploadPermissions: defaultTo( canUser( 'create', 'media' ), true ),
@@ -197,7 +199,6 @@ export default compose( [
 			setupEditor,
 			updatePostLock,
 			resetEditorBlocks,
-			resetEditorSelection,
 			editPost,
 			updateEditorSettings,
 		} = dispatch( 'core/editor' );
@@ -207,12 +208,18 @@ export default compose( [
 			setupEditor,
 			updatePostLock,
 			createWarningNotice,
-			resetEditorBlocks,
-			resetEditorSelection,
+			resetEditorBlocks( blocks, selectionStart, selectionEnd ) {
+				resetEditorBlocks( blocks, {
+					selectionStart,
+					selectionEnd,
+				} );
+			},
 			updateEditorSettings,
-			resetEditorBlocksWithoutUndoLevel( blocks ) {
+			resetEditorBlocksWithoutUndoLevel( blocks, selectionStart, selectionEnd ) {
 				resetEditorBlocks( blocks, {
 					__unstableShouldCreateUndoLevel: false,
+					selectionStart,
+					selectionEnd,
 				} );
 			},
 			onMetaChange( meta ) {

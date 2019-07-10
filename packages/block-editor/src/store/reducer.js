@@ -494,6 +494,15 @@ const withInnerBlocksRemoveCascade = ( reducer ) => ( state, action ) => {
 	return reducer( state, action );
 };
 
+const BLOCK_SELECTION_EMPTY_OBJECT = {};
+const BLOCK_SELECTION_INITIAL_STATE = {
+	start: BLOCK_SELECTION_EMPTY_OBJECT,
+	end: BLOCK_SELECTION_EMPTY_OBJECT,
+	isMultiSelecting: false,
+	isEnabled: true,
+	initialPosition: null,
+};
+
 /**
  * Higher-order reducer which targets the combined blocks reducer and handles
  * the `RESET_BLOCKS` action. When dispatched, this action will replace all
@@ -506,28 +515,39 @@ const withInnerBlocksRemoveCascade = ( reducer ) => ( state, action ) => {
  */
 const withBlockReset = ( reducer ) => ( state, action ) => {
 	if ( state && action.type === 'RESET_BLOCKS' ) {
+		const {
+			blocks,
+			selectionStart = BLOCK_SELECTION_EMPTY_OBJECT,
+			selectionEnd = BLOCK_SELECTION_EMPTY_OBJECT,
+		} = action;
+
 		const visibleClientIds = getNestedBlockClientIds( state.order );
 		return {
 			...state,
 			byClientId: {
 				...omit( state.byClientId, visibleClientIds ),
-				...getFlattenedBlocksWithoutAttributes( action.blocks ),
+				...getFlattenedBlocksWithoutAttributes( blocks ),
 			},
 			attributes: {
 				...omit( state.attributes, visibleClientIds ),
-				...getFlattenedBlockAttributes( action.blocks ),
+				...getFlattenedBlockAttributes( blocks ),
 			},
 			order: {
 				...omit( state.order, visibleClientIds ),
-				...mapBlockOrder( action.blocks ),
+				...mapBlockOrder( blocks ),
 			},
 			parents: {
 				...omit( state.parents, visibleClientIds ),
-				...mapBlockParents( action.blocks ),
+				...mapBlockParents( blocks ),
 			},
 			cache: {
 				...omit( state.cache, visibleClientIds ),
-				...mapValues( flattenBlocks( action.blocks ), () => ( {} ) ),
+				...mapValues( flattenBlocks( blocks ), () => ( {} ) ),
+			},
+			selection: {
+				...BLOCK_SELECTION_INITIAL_STATE,
+				start: selectionStart,
+				end: selectionEnd,
 			},
 		};
 	}
@@ -602,15 +622,6 @@ const withSaveReusableBlock = ( reducer ) => ( state, action ) => {
 	}
 
 	return reducer( state, action );
-};
-
-const BLOCK_SELECTION_EMPTY_OBJECT = {};
-const BLOCK_SELECTION_INITIAL_STATE = {
-	start: BLOCK_SELECTION_EMPTY_OBJECT,
-	end: BLOCK_SELECTION_EMPTY_OBJECT,
-	isMultiSelecting: false,
-	isEnabled: true,
-	initialPosition: null,
 };
 
 /**
@@ -732,8 +743,6 @@ export function blockSelection( state = BLOCK_SELECTION_INITIAL_STATE, action ) 
 					offset: action.endOffset,
 				},
 			};
-		case 'RESET_SELECTION':
-			return action.selection;
 	}
 
 	return state;

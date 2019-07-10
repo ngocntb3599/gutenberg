@@ -324,17 +324,6 @@ export function getBlockCount( state, rootClientId ) {
  */
 
 /**
- * Returns the current selection object.
- *
- * @param {Object} state Block editor state.
- *
- * @return {Object} Selection object
- */
-export function getSelection( state ) {
-	return state.blocks.selection;
-}
-
-/**
  * Returns the current selection start block client ID, attribute key and text
  * offset.
  *

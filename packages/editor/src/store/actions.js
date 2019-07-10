@@ -731,10 +731,18 @@ export function unlockPostSaving( lockName ) {
  * @return {Object} Action object
  */
 export function resetEditorBlocks( blocks, options = {} ) {
+	const {
+		selectionStart,
+		selectionEnd,
+		__unstableShouldCreateUndoLevel,
+	} = options;
+
 	return {
 		type: 'RESET_EDITOR_BLOCKS',
 		blocks,
-		shouldCreateUndoLevel: options.__unstableShouldCreateUndoLevel !== false,
+		selectionStart,
+		selectionEnd,
+		shouldCreateUndoLevel: __unstableShouldCreateUndoLevel !== false,
 	};
 }
 

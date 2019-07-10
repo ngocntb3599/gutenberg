@@ -156,9 +156,16 @@ export const editor = flow( [
 
 		return state;
 	} ),
-	selection( state = { start: {}, end: {} }, { type, selection } ) {
-		if ( type === 'RESET_EDITOR_SELECTION' && selection !== state ) {
-			return selection;
+	selectionStart( state = {}, { type, selectionStart } ) {
+		if ( type === 'RESET_EDITOR_BLOCKS' && selectionStart !== state ) {
+			return selectionStart;
+		}
+
+		return state;
+	},
+	selectionEnd( state = {}, { type, selectionEnd } ) {
+		if ( type === 'RESET_EDITOR_BLOCKS' && selectionEnd !== state ) {
+			return selectionEnd;
 		}
 
 		return state;

@@ -37,29 +37,18 @@ function* ensureDefaultBlock() {
  * reset to the specified array of blocks, taking precedence over any other
  * content reflected as an edit in state.
  *
- * @param {Array} blocks Array of blocks.
+ * @param {Array} blocks         Array of blocks.
+ * @param {Array} selectionStart Selection start object.
+ * @param {Array} selectionEnd   Selection end object.
  *
  * @return {Object} Action object.
  */
-export function resetBlocks( blocks ) {
+export function resetBlocks( blocks, selectionStart, selectionEnd ) {
 	return {
 		type: 'RESET_BLOCKS',
 		blocks,
-	};
-}
-
-/**
- * Returns an action object used in signalling that selection state should be
- * reset to the specified selection object.
- *
- * @param {Array} selection Selection object.
- *
- * @return {Object} Action object.
- */
-export function resetSelection( selection ) {
-	return {
-		type: 'RESET_SELECTION',
-		selection,
+		selectionStart,
+		selectionEnd,
 	};
 }
 
